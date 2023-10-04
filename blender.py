@@ -852,13 +852,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--object_path",
         type=str,
-        default="sample_from_abc.stl",
+        default="sample_data/sample_from_abc.stl",
         help="Path to the object file",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="output",
+        default="sample_output",
         help="Path to the directory where the rendered images and metadata will be saved.",
     )
     parser.add_argument(
@@ -900,7 +900,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--res_percentage",
         type=int,
-        default=50,
+        default=100,
         help="Percentage of the render size.",
     )
     args = parser.parse_args()
