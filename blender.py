@@ -744,8 +744,8 @@ def render_object(
     Returns:
         None
     """
+    os.makedirs(output_dir, exist_ok=True)
     metadata_path = os.path.join(output_dir, "metadata.json")
-    os.makedirs(os.path.dirname(metadata_path), exist_ok=True)
 
     # load the object
     if object_file.endswith(".blend"):
@@ -915,7 +915,7 @@ if __name__ == "__main__":
     render.image_settings.color_mode = "RGBA"
     render.resolution_x = args.render_size
     render.resolution_y = args.render_size
-    render.resolution_percentage = 50
+    render.resolution_percentage = args.res_percentage
 
     # Set cycles settings
     scene.cycles.device = "GPU"

@@ -57,7 +57,7 @@ def render_objects(
     # render all objects in parallel
     # get cpu count
     cpu_count = os.cpu_count()
-    with Pool(processes=1) as p:
+    with Pool(processes=cpu_count) as p:
         p.map(subprocess_cmd, commands)
 
 
