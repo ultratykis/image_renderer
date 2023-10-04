@@ -60,13 +60,17 @@ def render_objects(
     with Pool(processes=cpu_count) as p:
         p.map(subprocess_cmd, commands)
 
+    print("Done rendering all objects.")
+
 
 def subprocess_cmd(command):
-    # try:
-    #     process = subprocess.check_call(command, shell=True, stdout=subprocess.PIPE)
-    # except subprocess.CalledProcessError:
-    #     print("error running command: ", command)
-    subprocess.run(["bash", "-c", command])
+    # get object name
+    object_name = command.split("--object_path")[1].split("--")[0].strip()
+    logger.info(f"Rendering {object_name}...")
+    try:
+        process = subprocess.run(["bash", "-c", command], stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+        print("error running command: ", command)
 
 
 if __name__ == "__main__":
