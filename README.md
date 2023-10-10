@@ -20,12 +20,15 @@ This program will render `num_renders × num_trials` images. While `num_trials` 
 
 Here are samples of three views figure rendering.
 Front view:
+
 ![front](./sample_output/sample_from_abc/sketch_0_0.png)
 
 Side view:
+
 ![side](./sample_output/sample_from_abc/sketch_0_1.png)
 
 Top view:
+
 ![top](./sample_output/sample_from_abc/sketch_0_2.png)
 
 Code heavily borrowed from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).
