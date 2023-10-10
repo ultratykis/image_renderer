@@ -10,6 +10,7 @@ import subprocess
 def render_objects(
     raw_data_path: str = "sample_data",
     render_output_dir: str = "sample_output",
+    three_views: bool = False,
     num_renders: int = 5,
     num_trials: int = 5,
     freestyle: bool = True,
@@ -37,6 +38,8 @@ def render_objects(
     args += f" --engine {engine}"
     args += f" --render_size {render_size}"
     args += f" --res_percentage {res_percentage}"
+    if three_views:
+        args += " --three_views"
     args += f" --num_renders {num_renders}"
     args += f" --num_trials {num_trials}"
     command = f"python blender.py {args}"

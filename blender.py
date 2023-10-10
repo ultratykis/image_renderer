@@ -718,6 +718,7 @@ def render_object(
     object_file: str,
     output_dir: str,
     only_northern_hemisphere: bool,
+    three_views: bool,
     num_renders: int,
     num_trials: int,
     freestyle: bool = False,
@@ -735,6 +736,7 @@ def render_object(
             are in the northern hemisphere. This is useful for rendering objects that
             are photogrammetrically scanned, as the bottom of the object often has
             holes.
+        three_views (bool): Whether to render the object from 3 views (front, side, and top). If true, num_renders and num_trials are ignored.
         num_renders (int): Number of renders to save of the object.
         num_trials (int): Number of trials to try rendering num_renders images.
         freestyle (bool, optional): Whether to render the object with freestyle. Defaults to False.
@@ -800,22 +802,35 @@ def render_object(
     else:
         metadata["random_color"] = None
 
+    if three_views:
+        num_renders = 3
+        num_trials = 1
+        preset_cameras = [
+            {"az": 0, "el": 0},
+            {"az": 90, "el": 0},
+            {"az": 0, "el": 90},
+        ]
+
     az_angles = []
     el_angles = []
     for trial_id in range(num_trials):
         for view_id in range(num_renders):
-            # set the camera position
-            if trial_id != 1:
-                # render the object from 0, 45, 90, 135, 180 degrees azimuth
-                az = trial_id * 45 + (2 * np.random.rand() - 1) * error_az_range
+            if not three_views:
+                # set the camera position
+                if trial_id != 1:
+                    # render the object from 0, 45, 90, 135, 180 degrees azimuth
+                    az = trial_id * 45 + (2 * np.random.rand() - 1) * error_az_range
+                else:
+                    # randomly perturb the camera position from the 0 to 360 degrees azimuth.
+                    # sampled by 360 / num_renders. azimuth degree increases each view_id
+                    az = (
+                        view_id * 360 / num_renders
+                        + (2 * np.random.rand() - 1) * error_az_range
+                    )
+                el = (2 * np.random.rand() - 1) * error_el_range + 20
             else:
-                # randomly perturb the camera position from the 0 to 360 degrees azimuth.
-                # sampled by 360 / num_renders. azimuth degree increases each view_id
-                az = (
-                    view_id * 360 / num_renders
-                    + (2 * np.random.rand() - 1) * error_az_range
-                )
-            el = (2 * np.random.rand() - 1) * error_el_range + 20
+                az = preset_cameras[view_id]["az"]
+                el = preset_cameras[view_id]["el"]
             az_angles.append(az)
             el_angles.append(el)
             cam.location = (
@@ -869,6 +884,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--only_northern_hemisphere",
+        action="store_true",
+        help="Only render the northern hemisphere of the object.",
+        default=False,
+    )
+    parser.add_argument(
+        "--three_views",
         action="store_true",
         help="Only render the northern hemisphere of the object.",
         default=False,
@@ -957,6 +978,7 @@ if __name__ == "__main__":
         num_renders=args.num_renders,
         num_trials=args.num_trials,
         only_northern_hemisphere=args.only_northern_hemisphere,
+        three_views=args.three_views,
         output_dir=args.output_dir,
         freestyle=args.freestyle,
     )
