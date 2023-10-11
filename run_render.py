@@ -8,9 +8,9 @@ import subprocess
 
 
 def render_objects(
-    raw_data_path: str = "sample_data",
-    render_output_dir: str = "sample_output",
-    three_views: bool = False,
+    object_path: str = "sample_data",
+    output_dir: str = "sample_output",
+    three_views: bool = True,
     num_renders: int = 5,
     num_trials: int = 5,
     freestyle: bool = True,
@@ -29,7 +29,7 @@ def render_objects(
         args += "--only_northern_hemisphere"
 
     # get all objects in the raw data path
-    all_objects = glob.glob("*.stl", root_dir=raw_data_path, recursive=True)
+    all_objects = glob.glob("*.stl", root_dir=object_path, recursive=True)
     logger.info(f"Found {len(all_objects)} objects to render.")
 
     # set render style
@@ -40,6 +40,7 @@ def render_objects(
     args += f" --res_percentage {res_percentage}"
     if three_views:
         args += " --three_views"
+        args += f" --camera_type ORTHO"
     args += f" --num_renders {num_renders}"
     args += f" --num_trials {num_trials}"
     command = f"python blender.py {args}"
@@ -47,8 +48,8 @@ def render_objects(
     # get (input, output) paths
     io_paths = [
         (
-            os.path.join(raw_data_path, os.path.basename(obj)),
-            os.path.join(render_output_dir, os.path.basename(obj).split(".")[0]),
+            os.path.join(object_path, os.path.basename(obj)),
+            os.path.join(output_dir, os.path.basename(obj).split(".")[0]),
         )
         for obj in all_objects
     ]
@@ -57,13 +58,18 @@ def render_objects(
         for obj, output_dir in io_paths
     ]
 
-    # render all objects in parallel
-    # get cpu count
     cpu_count = os.cpu_count()
-    with Pool(processes=cpu_count) as p:
-        p.map(subprocess_cmd, commands)
+    if len(all_objects) > cpu_count:
+        # render all objects in parallel
+        # get cpu count
+        with Pool(processes=cpu_count) as p:
+            p.map(subprocess_cmd, commands)
+    else:
+        # render all objects sequentially
+        for command in commands:
+            subprocess_cmd(command)
 
-    print("Done rendering all objects.")
+    logger.info(f"Done rendering {len(all_objects)} objects.")
 
 
 def subprocess_cmd(command):

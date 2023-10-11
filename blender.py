@@ -718,6 +718,7 @@ def render_object(
     object_file: str,
     output_dir: str,
     only_northern_hemisphere: bool,
+    camera_type: str,
     three_views: bool,
     num_renders: int,
     num_trials: int,
@@ -736,6 +737,7 @@ def render_object(
             are in the northern hemisphere. This is useful for rendering objects that
             are photogrammetrically scanned, as the bottom of the object often has
             holes.
+        camera_type (str): Type of camera to use. Must be one of "PERSP", "ORTHO".
         three_views (bool): Whether to render the object from 3 views (front, side, and top). If true, num_renders and num_trials are ignored.
         num_renders (int): Number of renders to save of the object.
         num_trials (int): Number of trials to try rendering num_renders images.
@@ -889,6 +891,13 @@ if __name__ == "__main__":
         default=False,
     )
     parser.add_argument(
+        "--camera_type",
+        type=str,
+        default="PERSP",
+        choices=["PERSP", "ORTHO"],
+        help="Type of camera to use.",
+    ),
+    parser.add_argument(
         "--three_views",
         action="store_true",
         help="Only render the northern hemisphere of the object.",
@@ -909,7 +918,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--freestyle",
         action="store_true",
-        default=False,
+        default=True,
         help="Render the freestyle lines.",
     )
     parser.add_argument(
@@ -954,6 +963,16 @@ if __name__ == "__main__":
         "cycles"
     ].preferences.compute_device_type = "CUDA"  # or "OPENCL"
 
+    # set camera type
+    if args.camera_type == "PERSP":
+        bpy.data.cameras["Camera"].type = "PERSP"
+    elif args.camera_type == "ORTHO":
+        bpy.data.cameras["Camera"].type = "ORTHO"
+        # set scale to 1
+        bpy.data.cameras["Camera"].ortho_scale = 1.5
+    else:
+        raise ValueError(f"Unsupported camera type: {args.camera_type}")
+
     if args.freestyle:
         # set freestyle
         render.use_freestyle = True
@@ -964,7 +983,7 @@ if __name__ == "__main__":
         linesets.select_external_contour = True
         linesets.select_material_boundary = True
         linesets.select_ridge_valley = False
-        linesets.select_silhouette = False
+        linesets.select_silhouette = True
         linesets.select_suggestive_contour = False
         # only output the freestyle lines
         context.view_layer.use_solid = False
@@ -978,6 +997,7 @@ if __name__ == "__main__":
         num_renders=args.num_renders,
         num_trials=args.num_trials,
         only_northern_hemisphere=args.only_northern_hemisphere,
+        camera_type=args.camera_type,
         three_views=args.three_views,
         output_dir=args.output_dir,
         freestyle=args.freestyle,
