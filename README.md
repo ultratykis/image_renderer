@@ -18,6 +18,8 @@ Add `--only_northern_hemisphere` flag to locate camera only northern hemisphere.
 
 This program will render `num_renders × num_trials` images. While `num_trials` not `1`, the camera will be placed at `0, 45, 90, 135, 180` degrees azimuth and randomly perturbed to render num_renders images. Otherwise, the camera will be randomly placed from the 0 to 360 degrees azimuth.
 
+When rendering three views figure, the camera will be placed at `(0, 0)`, `(0, 90)` and `(90, 0)` degrees azimuth and randomly perturbed to render num_renders images. By default, the program will render the hidden edges as dashed lines. If you want to only render the visible edges, please add `--visible_edge` flag.
+
 Here are samples of three views figure rendering.
 Front view:
 
@@ -31,4 +33,4 @@ Top view:
 
 ![top](./sample_output/sample_from_abc/sketch_0_2.png)
 
-Code heavily borrowed from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).
+Code partially borrowed (scene normalization, camera/light setup and metadata extractor) from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).

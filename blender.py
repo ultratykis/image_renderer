@@ -842,10 +842,10 @@ if __name__ == "__main__":
         help="Render the freestyle lines.",
     )
     parser.add_argument(
-        "--unvisible",
+        "--visible_edges",
         action="store_true",
         default=False,
-        help="If true, render the invisible edges.",
+        help="If true, only render the visible edges.",
     )
     parser.add_argument(
         "--render_size",
@@ -912,7 +912,7 @@ if __name__ == "__main__":
         linesets.select_silhouette = True
         linesets.select_suggestive_contour = False
         # if args.unvisible is True, render the invisible edges as well and render as dashed lines
-        if args.unvisible:
+        if not args.visible_edges:
             hidden_lineset = context.view_layer.freestyle_settings.linesets.new(
                 "hidden_lines"
             )  # add new lineset

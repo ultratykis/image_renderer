@@ -14,6 +14,7 @@ def render_objects(
     num_renders: int = 5,
     num_trials: int = 5,
     freestyle: bool = True,
+    visible_edges: bool = False,
     engine: str = "CYCLES",
     only_northern_hemisphere: bool = False,
     render_size: int = 1024,
@@ -40,7 +41,8 @@ def render_objects(
     args += f" --res_percentage {res_percentage}"
     if three_views:
         args += " --three_views"
-        args += " --unvisible"
+        if visible_edges:
+            args += " --visible_edges"
         args += f" --camera_type ORTHO"
     args += f" --num_renders {num_renders}"
     args += f" --num_trials {num_trials}"
