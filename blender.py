@@ -922,6 +922,12 @@ if __name__ == "__main__":
         help="Render the freestyle lines.",
     )
     parser.add_argument(
+        "--unvisible",
+        action="store_true",
+        default=False,
+        help="If true, render the invisible edges.",
+    )
+    parser.add_argument(
         "--render_size",
         type=int,
         default=1024,
@@ -985,6 +991,25 @@ if __name__ == "__main__":
         linesets.select_ridge_valley = False
         linesets.select_silhouette = True
         linesets.select_suggestive_contour = False
+        # if args.unvisible is True, render the invisible edges as well and render as dashed lines
+        if args.unvisible:
+            hidden_lineset = context.view_layer.freestyle_settings.linesets.new(
+                "hidden_lines"
+            )  # add new lineset
+            hidden_lineset.visibility = "HIDDEN"
+            hidden_lineset.select_contour = True
+            hidden_lineset.select_crease = True
+            hidden_lineset.select_edge_mark = True
+            hidden_lineset.select_external_contour = True
+            hidden_lineset.select_material_boundary = True
+            hidden_lineset.select_ridge_valley = False
+            hidden_lineset.select_silhouette = True
+            hidden_lineset.select_suggestive_contour = False
+            hidden_lineset.linestyle.use_dashed_line = True  # set to dashed lines
+            hidden_lineset.linestyle.color = (0.5, 0.5, 0.5)  # set color to gray
+            hidden_lineset.linestyle.dash1 = 5  # set the dash length to 0.1
+            hidden_lineset.linestyle.gap1 = 5  # set the gap length to 0.1
+
         # only output the freestyle lines
         context.view_layer.use_solid = False
         # set background to white

@@ -16,7 +16,7 @@ def render_objects(
     freestyle: bool = True,
     engine: str = "CYCLES",
     only_northern_hemisphere: bool = False,
-    render_size: int = 512,
+    render_size: int = 1024,
     res_percentage: int = 100,
 ) -> bool:
     """Render the objects in the raw data path.
@@ -40,6 +40,7 @@ def render_objects(
     args += f" --res_percentage {res_percentage}"
     if three_views:
         args += " --three_views"
+        args += " --unvisible"
         args += f" --camera_type ORTHO"
     args += f" --num_renders {num_renders}"
     args += f" --num_trials {num_trials}"

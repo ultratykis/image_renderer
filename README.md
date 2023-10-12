@@ -6,10 +6,10 @@
 pip install bpy numpy
 
 # randomly rendering
-python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --engine CYCLES --num_renders 12 --num_trials 1
+python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --num_renders 12 --num_trials 1
 
 # three views figure rendering
-python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --engine CYCLES --three_views --freestyle
+python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --three_views --freestyle
 ```
 
 Add `--freestyle` flag to render contours/sketches.
