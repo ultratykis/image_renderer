@@ -7,8 +7,12 @@ import os
 import random
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
 import bpy
+import addon_utils
+
+addon_utils.enable("measureit")
 import numpy as np
 from mathutils import Vector
+
 
 IMPORT_FUNCTIONS: Dict[str, Callable] = {
     "obj": bpy.ops.import_scene.obj,
@@ -883,7 +887,7 @@ if __name__ == "__main__":
     # scene.cycles.transmission_bounces = 3
     # scene.cycles.filter_width = 0.01
     # scene.cycles.use_denoising = True
-    # scene.render.film_transparent = True
+    scene.render.film_transparent = True
     bpy.context.preferences.addons["cycles"].preferences.get_devices()
     bpy.context.preferences.addons[
         "cycles"
@@ -933,8 +937,8 @@ if __name__ == "__main__":
         # only output the freestyle lines
         context.view_layer.use_solid = False
         # set background to white
-        scene.world.node_tree.nodes["Background"].inputs[0].default_value = (1, 1, 1, 1)
-        scene.render.film_transparent = False
+        # scene.world.node_tree.nodes["Background"].inputs[0].default_value = (1, 1, 1, 1)
+        # scene.render.film_transparent = False
 
     # Render the images
     render_object(
