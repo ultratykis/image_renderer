@@ -30,8 +30,8 @@ def render_objects(
         args += "--only_northern_hemisphere"
 
     # get all objects in the raw data path
-    all_objects = glob.glob("*.stl", root_dir=object_path, recursive=True)
-    logger.info(f"Found {len(all_objects)} objects to render.")
+    all_objects = glob.glob("**/*.stl", root_dir=object_path, recursive=True)
+    logger.info(f"Found {len(all_objects)} objects to render in {object_path}.")
 
     # set render style
     if freestyle:
@@ -51,7 +51,7 @@ def render_objects(
     # get (input, output) paths
     io_paths = [
         (
-            os.path.join(object_path, os.path.basename(obj)),
+            os.path.join(object_path, obj),
             os.path.join(output_dir, os.path.basename(obj).split(".")[0]),
         )
         for obj in all_objects

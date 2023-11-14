@@ -891,7 +891,9 @@ if __name__ == "__main__":
     bpy.context.preferences.addons["cycles"].preferences.get_devices()
     bpy.context.preferences.addons[
         "cycles"
-    ].preferences.compute_device_type = "CUDA"  # or "OPENCL"
+    ].preferences.compute_device_type = (
+        "CUDA"  # One in ('NONE', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI')
+    )
 
     # set camera type
     if args.camera_type == "PERSP":
@@ -941,6 +943,7 @@ if __name__ == "__main__":
         # scene.render.film_transparent = False
 
     # Render the images
+    print("starting rendering {}...".format(args.object_path))
     render_object(
         object_file=args.object_path,
         num_renders=args.num_renders,
