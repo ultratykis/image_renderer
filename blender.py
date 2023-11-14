@@ -937,6 +937,7 @@ if __name__ == "__main__":
         scene.render.film_transparent = False
 
     # Render the images
+    print("starting rendering {}...".format(args.object_path))
     render_object(
         object_file=args.object_path,
         num_renders=args.num_renders,
