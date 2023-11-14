@@ -887,7 +887,9 @@ if __name__ == "__main__":
     bpy.context.preferences.addons["cycles"].preferences.get_devices()
     bpy.context.preferences.addons[
         "cycles"
-    ].preferences.compute_device_type = "CUDA"  # or "OPENCL"
+    ].preferences.compute_device_type = (
+        "CUDA"  # One in ('NONE', 'CUDA', 'OPTIX', 'HIP', 'ONEAPI')
+    )
 
     # set camera type
     if args.camera_type == "PERSP":
