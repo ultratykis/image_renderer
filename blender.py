@@ -743,7 +743,7 @@ def render_object(
         for view_id in range(num_renders):
             if not three_views:
                 # set the camera position
-                if trial_id != 1:
+                if num_trials != 1:
                     # render the object from 0, 45, 90, 135, 180 degrees azimuth
                     az = trial_id * 45 + (2 * np.random.rand() - 1) * error_az_range
                 else:
@@ -863,6 +863,12 @@ if __name__ == "__main__":
         default=100,
         help="Percentage of the render size.",
     )
+    parser.add_argument(
+        "--output_channels",
+        type=str,
+        default="RGBA",
+        help="Output channels of the rendered image. RGB or RGBA. Default is RGBA.",
+    )
     args = parser.parse_args()
 
     context = bpy.context
@@ -872,7 +878,7 @@ if __name__ == "__main__":
     # Set render settings
     render.engine = args.engine
     render.image_settings.file_format = "PNG"
-    render.image_settings.color_mode = "RGBA"
+    render.image_settings.color_mode = args.output_channels
     render.resolution_x = args.render_size
     render.resolution_y = args.render_size
     render.resolution_percentage = args.res_percentage
@@ -917,6 +923,8 @@ if __name__ == "__main__":
         linesets.select_ridge_valley = False
         linesets.select_silhouette = True
         linesets.select_suggestive_contour = False
+        if args.output_channels == "RGB":
+            linesets.linestyle.color = (1, 1, 1)  # set color to white
         # if args.unvisible is True, render the invisible edges as well and render as dashed lines
         if not args.visible_edges:
             hidden_lineset = context.view_layer.freestyle_settings.linesets.new(

@@ -19,6 +19,7 @@ def render_objects(
     only_northern_hemisphere: bool = False,
     render_size: int = 1024,
     res_percentage: int = 100,
+    output_channels: str = "RGBA",
 ) -> bool:
     """Render the objects in the raw data path.
     Args:
@@ -46,6 +47,7 @@ def render_objects(
         args += f" --camera_type ORTHO"
     args += f" --num_renders {num_renders}"
     args += f" --num_trials {num_trials}"
+    args += f" --output_channels {output_channels}"
     command = f"python blender.py {args}"
 
     # get (input, output) paths
@@ -62,10 +64,11 @@ def render_objects(
     ]
 
     cpu_count = os.cpu_count()
+    p_count = 4
     if len(all_objects) > cpu_count:
         # render all objects in parallel
         # get cpu count
-        with Pool(processes=cpu_count) as p:
+        with Pool(processes=p_count) as p:
             p.map(subprocess_cmd, commands)
     else:
         # render all objects sequentially
