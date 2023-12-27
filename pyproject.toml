@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "image-renderer"
+version = "0.1.0"
+description = "Render 3D model to multi-view images (or contours/sketches) with blender."
+authors = ["YI HE <yi.he.vd@hitachi.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+bpy = "^4.0.0"
+fire = "^0.5.0"
+numpy = "^1.26.2"
+loguru = "^0.7.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
