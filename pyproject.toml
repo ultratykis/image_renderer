@@ -5,7 +5,7 @@ description = "Render 3D model to multi-view images (or contours/sketches) with 
 authors = ["YI HE <yi.he.vd@hitachi.com>"]
 readme = "README.md"
 packages = [
-    { include = "src", from = "." },
+    { include = "image_renderer", from = "." },
 ]
 
 [tool.poetry.dependencies]

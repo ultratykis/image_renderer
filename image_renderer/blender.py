@@ -44,7 +44,7 @@ def reset_cameras() -> None:
     new_camera.name = "Camera"
 
     # Set the new camera as the active camera for the scene
-    scene.camera = new_camera
+    bpy.context.bpy.context.scene.camera = new_camera
 
 
 def _sample_spherical(
@@ -329,7 +329,7 @@ def delete_invisible_objects() -> None:
         None
     """
     bpy.ops.object.select_all(action="DESELECT")
-    for obj in scene.objects:
+    for obj in bpy.context.scene.objects:
         if obj.hide_viewport or obj.hide_render:
             obj.hide_viewport = False
             obj.hide_render = False
@@ -645,7 +645,6 @@ def render_object(
     camera_type: str,
     three_views: bool,
     num_renders: int,
-    num_trials: int,
     freestyle: bool = False,
     error_az_range=22.5,
     error_el_range=5,
@@ -664,7 +663,6 @@ def render_object(
         camera_type (str): Type of camera to use. Must be one of "PERSP", "ORTHO".
         three_views (bool): Whether to render the object from 3 views (front, side, and top). If true, num_renders and num_trials are ignored.
         num_renders (int): Number of renders to save of the object.
-        num_trials (int): Number of trials to try rendering num_renders images.
         freestyle (bool, optional): Whether to render the object with freestyle. Defaults to False.
         error_az_range (float, optional): Range of error in azimuth angle. Defaults to 22.5.
         error_el_range (float, optional): Range of error in elevation angle. Defaults to 5.
@@ -691,7 +689,7 @@ def render_object(
     randomize_lighting()
 
     # Set up cameras
-    cam = scene.objects["Camera"]
+    cam = bpy.context.scene.objects["Camera"]
     cam.data.lens = 35
     cam.data.sensor_width = 32
 
@@ -700,13 +698,13 @@ def render_object(
     cam_constraint.track_axis = "TRACK_NEGATIVE_Z"
     cam_constraint.up_axis = "UP_Y"
     empty = bpy.data.objects.new("Empty", None)
-    scene.collection.objects.link(empty)
+    bpy.context.scene.collection.objects.link(empty)
     cam_constraint.target = empty
 
     # Extract the metadata. This must be done before normalizing the scene to get
     # accurate bounding box information.
     metadata_extractor = MetadataExtractor(
-        object_path=object_file, scene=scene, bdata=bpy.data
+        object_path=object_file, scene=bpy.context.scene, bdata=bpy.data
     )
     metadata = metadata_extractor.get_metadata()
 
@@ -779,7 +777,7 @@ def render_object(
                 filename = os.path.join(output_dir, f"sketch_{trial_id}_{view_id}.png")
             else:
                 filename = os.path.join(output_dir, f"rgba_{trial_id}_{view_id}.png")
-            scene.render.filepath = filename
+            bpy.context.scene.render.filepath = filename
             bpy.ops.render.render(write_still=True)
 
     metadata["camera"] = {"az": az_angles, "el": el_angles}
@@ -788,112 +786,41 @@ def render_object(
         json.dump(metadata, f, sort_keys=True, indent=2)
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--object_path",
-        type=str,
-        default="sample_data/sample_from_abc.stl",
-        help="Path to the object file",
-    )
-    parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="sample_output",
-        help="Path to the directory where the rendered images and metadata will be saved.",
-    )
-    parser.add_argument(
-        "--engine",
-        type=str,
-        default="CYCLES",
-        choices=["CYCLES", "BLENDER_EEVEE"],
-    )
-    parser.add_argument(
-        "--only_northern_hemisphere",
-        action="store_true",
-        help="Only render the northern hemisphere of the object.",
-        default=False,
-    )
-    parser.add_argument(
-        "--camera_type",
-        type=str,
-        default="PERSP",
-        choices=["PERSP", "ORTHO"],
-        help="Type of camera to use.",
-    ),
-    parser.add_argument(
-        "--three_views",
-        action="store_true",
-        help="Only render the northern hemisphere of the object.",
-        default=False,
-    )
-    parser.add_argument(
-        "--num_renders",
-        type=int,
-        default=5,
-        help="Number of renders to save of the object.",
-    )
-    parser.add_argument(
-        "--num_trials",
-        type=int,
-        default=5,
-        help="Number of trials to render the images. If one, the camera will be randomly placed to render num_renders images. If more than one, the camera will be placed at 0, 45, 90, 135, 180 degrees azimuth and randomly perturbed to render num_renders images.",
-    )
-    parser.add_argument(
-        "--freestyle",
-        action="store_true",
-        default=True,
-        help="Render the freestyle lines.",
-    )
-    parser.add_argument(
-        "--visible_edges",
-        action="store_true",
-        default=False,
-        help="If true, only render the visible edges.",
-    )
-    parser.add_argument(
-        "--render_size",
-        type=int,
-        default=1024,
-        help="Size of the rendered image.",
-    )
-    parser.add_argument(
-        "--res_percentage",
-        type=int,
-        default=100,
-        help="Percentage of the render size.",
-    )
-    parser.add_argument(
-        "--output_channels",
-        type=str,
-        default="RGBA",
-        help="Output channels of the rendered image. RGB or RGBA. Default is RGBA.",
-    )
-    args = parser.parse_args()
-
-    context = bpy.context
-    scene = context.scene
-    render = scene.render
+def render_to_images(
+    object_file: str,
+    output_dir: str,
+    engine: str = "CYCLES",
+    only_northern_hemisphere: bool = False,
+    camera_type: str = "ORTHO",
+    three_views: bool = False,
+    num_renders: int = 1,
+    freestyle: bool = True,
+    visible_edges: bool = False,
+    render_size: int = 1024,
+    res_percentage: int = 100,
+    output_channels: str = "RGBA",
+) -> None:
+    render = bpy.context.scene.render
 
     # Set render settings
-    render.engine = args.engine
+    render.engine = engine
     render.image_settings.file_format = "PNG"
-    render.image_settings.color_mode = args.output_channels
-    render.resolution_x = args.render_size
-    render.resolution_y = args.render_size
-    render.resolution_percentage = args.res_percentage
+    render.image_settings.color_mode = output_channels
+    render.resolution_x = render_size
+    render.resolution_y = render_size
+    render.resolution_percentage = res_percentage
 
     # Set cycles settings
-    scene.cycles.device = "GPU"
+    bpy.context.scene.cycles.device = "GPU"
     # balance render time and quality
-    scene.cycles.samples = 128
-    # scene.cycles.diffuse_bounces = 1
-    # scene.cycles.glossy_bounces = 1
-    # scene.cycles.transparent_max_bounces = 3
-    # scene.cycles.transmission_bounces = 3
-    # scene.cycles.filter_width = 0.01
-    # scene.cycles.use_denoising = True
-    scene.render.film_transparent = True
+    bpy.context.scene.cycles.samples = 128
+    # bpy.context.scene.cycles.diffuse_bounces = 1
+    # bpy.context.scene.cycles.glossy_bounces = 1
+    # bpy.context.scene.cycles.transparent_max_bounces = 3
+    # bpy.context.scene.cycles.transmission_bounces = 3
+    # bpy.context.scene.cycles.filter_width = 0.01
+    # bpy.context.scene.cycles.use_denoising = True
+    bpy.context.scene.render.film_transparent = True
     bpy.context.preferences.addons["cycles"].preferences.get_devices()
     bpy.context.preferences.addons[
         "cycles"
@@ -902,19 +829,19 @@ if __name__ == "__main__":
     )
 
     # set camera type
-    if args.camera_type == "PERSP":
+    if camera_type == "PERSP":
         bpy.data.cameras["Camera"].type = "PERSP"
-    elif args.camera_type == "ORTHO":
+    elif camera_type == "ORTHO":
         bpy.data.cameras["Camera"].type = "ORTHO"
         # set scale to 1
         bpy.data.cameras["Camera"].ortho_scale = 1.5
     else:
-        raise ValueError(f"Unsupported camera type: {args.camera_type}")
+        raise ValueError(f"Unsupported camera type: {camera_type}")
 
-    if args.freestyle:
+    if freestyle:
         # set freestyle
         render.use_freestyle = True
-        linesets = context.view_layer.freestyle_settings.linesets.active
+        linesets = bpy.context.view_layer.freestyle_settings.linesets.active
         linesets.select_contour = True
         linesets.select_crease = True
         linesets.select_edge_mark = True
@@ -923,11 +850,11 @@ if __name__ == "__main__":
         linesets.select_ridge_valley = False
         linesets.select_silhouette = True
         linesets.select_suggestive_contour = False
-        if args.output_channels == "RGB":
+        if output_channels == "RGB":
             linesets.linestyle.color = (1, 1, 1)  # set color to white
-        # if args.unvisible is True, render the invisible edges as well and render as dashed lines
-        if not args.visible_edges:
-            hidden_lineset = context.view_layer.freestyle_settings.linesets.new(
+        # if unvisible is True, render the invisible edges as well and render as dashed lines
+        if not visible_edges:
+            hidden_lineset = bpy.context.view_layer.freestyle_settings.linesets.new(
                 "hidden_lines"
             )  # add new lineset
             hidden_lineset.visibility = "HIDDEN"
@@ -945,20 +872,19 @@ if __name__ == "__main__":
             hidden_lineset.linestyle.gap1 = 5  # set the gap length to 0.1
 
         # only output the freestyle lines
-        context.view_layer.use_solid = False
+        bpy.context.view_layer.use_solid = False
         # set background to white
-        # scene.world.node_tree.nodes["Background"].inputs[0].default_value = (1, 1, 1, 1)
-        # scene.render.film_transparent = False
+        # bpy.context.scene.world.node_tree.nodes["Background"].inputs[0].default_value = (1, 1, 1, 1)
+        # bpy.context.scene.render.film_transparent = False
 
     # Render the images
-    print("starting rendering {}...".format(args.object_path))
+    print("starting rendering {}...".format(object_file))
     render_object(
-        object_file=args.object_path,
-        num_renders=args.num_renders,
-        num_trials=args.num_trials,
-        only_northern_hemisphere=args.only_northern_hemisphere,
-        camera_type=args.camera_type,
-        three_views=args.three_views,
-        output_dir=args.output_dir,
-        freestyle=args.freestyle,
+        object_file=object_file,
+        num_renders=num_renders,
+        only_northern_hemisphere=only_northern_hemisphere,
+        camera_type=camera_type,
+        three_views=three_views,
+        output_dir=output_dir,
+        freestyle=freestyle,
     )
