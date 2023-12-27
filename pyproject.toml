@@ -6,7 +6,7 @@ authors = ["YI HE <yi.he.vd@hitachi.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.11.dev0"
 bpy = "^4.0.0"
 fire = "^0.5.0"
 numpy = "^1.26.2"

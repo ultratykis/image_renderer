@@ -3,7 +3,7 @@
 ## Usage:
 
 ```bash
-pip install bpy numpy
+poetry install
 
 # randomly rendering
 python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --num_renders 12 --num_trials 1

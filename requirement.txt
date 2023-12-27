@@ -1,4 +1,0 @@
-fire
-numpy
-bpy
-loguru
