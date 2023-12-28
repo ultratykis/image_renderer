@@ -1,14 +1,16 @@
 """Implement the Renderer class with blender."""
 
-import argparse
 import json
 import math
 import os
 import random
-from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
-import bpy
+from typing import Any, Callable, Dict, List, Literal, Tuple
+
 import addon_utils
-from MetadataExtractor import MetadataExtractor
+import bpy
+
+from .MetadataExtractor import MetadataExtractor
+from .utlis import get_scene_root_objects, scene_bbox
 
 addon_utils.enable("measureit")
 import numpy as np
@@ -509,68 +511,6 @@ class Renderer:
         else:
             import_function(filepath=object_path)
 
-    def scene_bbox(
-        self, single_obj: Optional[bpy.types.Object] = None, ignore_matrix: bool = False
-    ) -> Tuple[Vector, Vector]:
-        """Returns the bounding box of the scene.
-
-        Taken from Shap-E rendering script
-        (https://github.com/openai/shap-e/blob/main/shap_e/rendering/blender/blender_script.py#L68-L82)
-
-        Args:
-            single_obj (Optional[bpy.types.Object], optional): If not None, only computes
-                the bounding box for the given object. Defaults to None.
-            ignore_matrix (bool, optional): Whether to ignore the object's matrix. Defaults
-                to False.
-
-        Raises:
-            RuntimeError: If there are no objects in the scene.
-
-        Returns:
-            Tuple[Vector, Vector]: The minimum and maximum coordinates of the bounding box.
-        """
-        bbox_min = (math.inf,) * 3
-        bbox_max = (-math.inf,) * 3
-        found = False
-        for obj in self.get_scene_meshes() if single_obj is None else [single_obj]:
-            found = True
-            for coord in obj.bound_box:
-                coord = Vector(coord)
-                if not ignore_matrix:
-                    coord = obj.matrix_world @ coord
-                bbox_min = tuple(min(x, y) for x, y in zip(bbox_min, coord))
-                bbox_max = tuple(max(x, y) for x, y in zip(bbox_max, coord))
-
-        if not found:
-            raise RuntimeError("no objects in scene to compute bounding box for")
-
-        return Vector(bbox_min), Vector(bbox_max)
-
-    def get_scene_root_objects(
-        self,
-    ) -> Generator[bpy.types.Object, None, None]:
-        """Returns all root objects in the scene.
-
-        Yields:
-            Generator[bpy.types.Object, None, None]: Generator of all root objects in the
-                scene.
-        """
-        for obj in bpy.context.scene.objects.values():
-            if not obj.parent:
-                yield obj
-
-    def get_scene_meshes(
-        self,
-    ) -> Generator[bpy.types.Object, None, None]:
-        """Returns all meshes in the scene.
-
-        Yields:
-            Generator[bpy.types.Object, None, None]: Generator of all meshes in the scene.
-        """
-        for obj in bpy.context.scene.objects.values():
-            if isinstance(obj.data, (bpy.types.Mesh)):
-                yield obj
-
     def delete_invisible_objects(
         self,
     ) -> None:
@@ -609,26 +549,26 @@ class Renderer:
         Returns:
             None
         """
-        if len(list(self.get_scene_root_objects())) > 1:
+        if len(list(get_scene_root_objects())) > 1:
             # create an empty object to be used as a parent for all root objects
             parent_empty = bpy.data.objects.new("ParentEmpty", None)
             bpy.context.scene.collection.objects.link(parent_empty)
 
             # parent all root objects to the empty object
-            for obj in self.get_scene_root_objects():
+            for obj in get_scene_root_objects():
                 if obj != parent_empty:
                     obj.parent = parent_empty
 
-        bbox_min, bbox_max = self.scene_bbox()
+        bbox_min, bbox_max = scene_bbox()
         scale = 1 / max(bbox_max - bbox_min)
-        for obj in self.get_scene_root_objects():
+        for obj in get_scene_root_objects():
             obj.scale = obj.scale * scale
 
         # Apply scale to matrix_world.
         bpy.context.view_layer.update()
-        bbox_min, bbox_max = self.scene_bbox()
+        bbox_min, bbox_max = scene_bbox()
         offset = -(bbox_min + bbox_max) / 2
-        for obj in self.get_scene_root_objects():
+        for obj in get_scene_root_objects():
             obj.matrix_world.translation += offset
         bpy.ops.object.select_all(action="DESELECT")
 

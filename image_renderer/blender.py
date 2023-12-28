@@ -6,13 +6,13 @@ import math
 import os
 import random
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
-import bpy
+
 import addon_utils
+import bpy
 
 addon_utils.enable("measureit")
 import numpy as np
 from mathutils import Vector
-
 
 IMPORT_FUNCTIONS: Dict[str, Callable] = {
     "obj": bpy.ops.import_scene.obj,

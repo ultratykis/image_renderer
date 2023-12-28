@@ -1,1 +1,5 @@
-dist
+# ignore build directory
+dist/
+
+# python bytecode
+*.pyc

@@ -1,9 +1,9 @@
+import os
+from typing import Any, Dict, List, Set
+
 import bpy
 
-import math
-import os
-from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
-from mathutils import Vector
+from .utlis import scene_bbox
 
 
 class MetadataExtractor:
@@ -112,7 +112,7 @@ class MetadataExtractor:
 
     def get_scene_size(self) -> Dict[str, list]:
         """Returns the size of the scene bounds in meters."""
-        bbox_min, bbox_max = self.scene_bbox()
+        bbox_min, bbox_max = scene_bbox()
         return {"bbox_max": list(bbox_max), "bbox_min": list(bbox_min)}
 
     def get_shape_key_count(self) -> int:
@@ -163,40 +163,3 @@ class MetadataExtractor:
             "shape_key_count": self.get_shape_key_count(),
             "armature_count": self.get_armature_count(),
         }
-
-    def scene_bbox(
-        self, single_obj: Optional[bpy.types.Object] = None, ignore_matrix: bool = False
-    ) -> Tuple[Vector, Vector]:
-        """Returns the bounding box of the scene.
-
-        Taken from Shap-E rendering script
-        (https://github.com/openai/shap-e/blob/main/shap_e/rendering/blender/blender_script.py#L68-L82)
-
-        Args:
-            single_obj (Optional[bpy.types.Object], optional): If not None, only computes
-                the bounding box for the given object. Defaults to None.
-            ignore_matrix (bool, optional): Whether to ignore the object's matrix. Defaults
-                to False.
-
-        Raises:
-            RuntimeError: If there are no objects in the scene.
-
-        Returns:
-            Tuple[Vector, Vector]: The minimum and maximum coordinates of the bounding box.
-        """
-        bbox_min = (math.inf,) * 3
-        bbox_max = (-math.inf,) * 3
-        found = False
-        for obj in self.get_scene_meshes() if single_obj is None else [single_obj]:
-            found = True
-            for coord in obj.bound_box:
-                coord = Vector(coord)
-                if not ignore_matrix:
-                    coord = obj.matrix_world @ coord
-                bbox_min = tuple(min(x, y) for x, y in zip(bbox_min, coord))
-                bbox_max = tuple(max(x, y) for x, y in zip(bbox_max, coord))
-
-        if not found:
-            raise RuntimeError("no objects in scene to compute bounding box for")
-
-        return Vector(bbox_min), Vector(bbox_max)

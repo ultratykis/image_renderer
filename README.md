@@ -1,10 +1,20 @@
-# Render 3D model to multi-view images (or contours/sketches) with blender.
+# Render 3D model to multi-view images (or contours/sketches) with blender
 
-## Usage:
+## Usage
+
+Recommend poetry to manage python environment.
 
 ```bash
 poetry install
+```
 
+Or use pip to install dependencies. Need python 3.10 (>=3.10,<3.11.dev0)
+
+```bash
+pip install bpy, numpy, fire, loguru
+```
+
+```bash
 # randomly rendering
 python run_render.py --object_path <path/to/file> --output_dir <path/to/output/dir> --num_renders 12 --num_trials 1
 
@@ -34,3 +44,12 @@ Top view:
 ![top](./sample_output/sample_from_abc/sketch_0_2.png)
 
 Code partially borrowed (scene normalization, camera/light setup and metadata extractor) from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).
+
+## Use as a library
+
+```python
+from image_render import Renderer
+
+renderer = Renderer()
+renderer.render_object("sample_data/sample_from_abc.stl", "sample_output", three_views=True)
+```
