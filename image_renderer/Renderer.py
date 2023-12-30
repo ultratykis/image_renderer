@@ -10,6 +10,7 @@ from typing import Any, Callable, Dict, List, Literal, Tuple
 import bpy
 import addon_utils
 
+
 from .MetadataExtractor import MetadataExtractor
 from .utlis import get_scene_root_objects, scene_bbox
 
@@ -678,3 +679,14 @@ class Renderer:
             if obj.type == "MESH":
                 self._apply_color_to_object(obj, rand_color)
         return rand_color
+
+    def gc_collect(self) -> None:
+        """Runs garbage collection.
+
+        Returns:
+            None
+        """
+        import gc
+
+        del self.bpy
+        gc.collect()
