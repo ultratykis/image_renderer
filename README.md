@@ -33,15 +33,15 @@ When rendering three views figure, the camera will be placed at `(0, 0)`, `(0, 9
 Here are samples of three views figure rendering.
 Front view:
 
-![front](./sample_output/sample_from_abc/sketch_0_0.png)
+![front](./sample_output/0.png)
 
 Side view:
 
-![side](./sample_output/sample_from_abc/sketch_0_1.png)
+![side](./sample_output/1.png)
 
 Top view:
 
-![top](./sample_output/sample_from_abc/sketch_0_2.png)
+![top](./sample_output/2.png)
 
 Code partially borrowed (scene normalization, camera/light setup and metadata extractor) from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).
 
