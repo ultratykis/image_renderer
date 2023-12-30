@@ -6,8 +6,9 @@ import os
 import random
 from typing import Any, Callable, Dict, List, Literal, Tuple
 
-import addon_utils
+# import bpy first
 import bpy
+import addon_utils
 
 from .MetadataExtractor import MetadataExtractor
 from .utlis import get_scene_root_objects, scene_bbox
