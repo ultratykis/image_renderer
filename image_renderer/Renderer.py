@@ -11,7 +11,6 @@ from typing import Any, Callable, Dict, List, Literal, Tuple
 import bpy
 import addon_utils
 
-
 from .MetadataExtractor import MetadataExtractor
 from .utlis import get_scene_root_objects, scene_bbox
 
@@ -500,7 +499,7 @@ class Renderer:
         Returns:
             None
         """
-        file_extension = object_path.suffix.lower()
+        file_extension = object_path.suffix.lower()[1:]
         if file_extension is None or file_extension == "usdz":
             raise ValueError(f"Unsupported file type: {object_path}")
 
