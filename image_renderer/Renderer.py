@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Literal, Tuple
 import bpy
 import addon_utils
 
+
 from .MetadataExtractor import MetadataExtractor
 from .utlis import get_scene_root_objects, scene_bbox
 
@@ -487,11 +488,11 @@ class Renderer:
         for image in bpy.data.images:
             bpy.data.images.remove(image, do_unlink=True)
 
-    def load_object(self, object_path: str) -> None:
+    def load_object(self, object_path: Path) -> None:
         """Loads a model with a supported file extension into the scene.
 
         Args:
-            object_path (str): Path to the model file.
+            object_path (Path): Path to the model file.
 
         Raises:
             ValueError: If the file extension is not supported.
@@ -499,7 +500,7 @@ class Renderer:
         Returns:
             None
         """
-        file_extension = object_path.split(".")[-1].lower()
+        file_extension = object_path.suffix.lower()
         if file_extension is None or file_extension == "usdz":
             raise ValueError(f"Unsupported file type: {object_path}")
 
