@@ -4,12 +4,12 @@ import json
 import math
 import os
 import random
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Tuple
 
 # import bpy first
 import bpy
 import addon_utils
-
 
 from .MetadataExtractor import MetadataExtractor
 from .utlis import get_scene_root_objects, scene_bbox
@@ -113,8 +113,8 @@ class Renderer:
 
     def render_object(
         self,
-        object_file: str,
-        output_dir: str,
+        object_file: Path,
+        output_dir: Path,
         only_northern_hemisphere: bool = False,
         camera_type: str = "ORTHO",
         num_renders: int = 12,
@@ -128,8 +128,8 @@ class Renderer:
         """Saves rendered images with its camera matrix and metadata of the object.
 
         Args:
-            object_file (str): Path to the object file.
-            output_dir (str): Path to the directory where the rendered images and metadata
+            object_file (Path): Path to the object file.
+            output_dir (Path): Path to the directory where the rendered images and metadata
                 will be saved.
             only_northern_hemisphere (bool): Whether to only render sides of the object that
                 are in the northern hemisphere. This is useful for rendering objects that
@@ -146,11 +146,11 @@ class Renderer:
         Returns:
             None
         """
-        os.makedirs(output_dir, exist_ok=True)
-        metadata_path = os.path.join(output_dir, "metadata.json")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        metadata_path = output_dir.joinpath("metadata.json")
 
         # load the object
-        if object_file.endswith(".blend"):
+        if object_file.suffix == ".blend":
             bpy.ops.object.mode_set(mode="OBJECT")
             self.reset_cameras(camera_type=camera_type)
             self.delete_invisible_objects()
@@ -194,7 +194,7 @@ class Renderer:
 
         # possibly apply a random color to all objects
         if (
-            object_file.endswith(".stl") or object_file.endswith(".ply")
+            object_file.suffix == ".stl" or object_file.suffix == ".ply"
         ) and not freestyle:
             # bpy.ops.object.select_by_type(type="MESH")
             # assert len(bpy.context.selected_objects) == 1
@@ -245,7 +245,7 @@ class Renderer:
                 rot_quat = direction.to_track_quat("-Z", "Y")
                 cam.rotation_euler = rot_quat.to_euler()
                 # render the image
-                filename = os.path.join(output_dir, f"{view_id}.png")
+                filename = output_dir.joinpath(f"{view_id}.png")
                 self.context.scene.render.filepath = filename
                 bpy.ops.render.render(write_still=True)
 
@@ -271,8 +271,8 @@ class Renderer:
             rot_quat = direction.to_track_quat("-Z", "Y")
             cam.rotation_euler = rot_quat.to_euler()
             # render the image
-            filename = os.path.join(output_dir, f"rendered.png")
-            self.context.scene.render.filepath = filename
+            filename = output_dir.joinpath(f"rendered.png")
+            self.context.scene.render.filepath = str(filename)
             bpy.ops.render.render(write_still=True)
 
     def reset_cameras(self, camera_type: str = "PERSP") -> None:
