@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "image-renderer"
-version = "0.1.1"
+version = "0.1.2"
 description = "Render 3D model to multi-view images (or contours/sketches) with blender."
 authors = ["YI HE <yi.he.vd@hitachi.com>"]
 readme = "README.md"
