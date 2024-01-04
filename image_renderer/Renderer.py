@@ -185,7 +185,7 @@ class Renderer:
         metadata = metadata_extractor.get_metadata()
 
         # delete all objects that are not meshes
-        if object_file.lower().endswith(".usdz"):
+        if object_file.suffix == ".usdz":
             # don't delete missing textures on usdz files, lots of them are embedded
             missing_textures = None
         else:
@@ -246,7 +246,7 @@ class Renderer:
                 cam.rotation_euler = rot_quat.to_euler()
                 # render the image
                 filename = output_dir.joinpath(f"{view_id}.png")
-                self.context.scene.render.filepath = filename
+                self.context.scene.render.filepath = str(filename)
                 bpy.ops.render.render(write_still=True)
 
             metadata["camera"] = {"az": az_angles, "el": el_angles}
@@ -507,11 +507,11 @@ class Renderer:
         import_function = self.IMPORT_FUNCTIONS[file_extension]
 
         if file_extension == "blend":
-            import_function(directory=object_path, link=False)
+            import_function(directory=str(object_path), link=False)
         elif file_extension in {"glb", "gltf"}:
-            import_function(filepath=object_path, merge_vertices=True)
+            import_function(filepath=str(object_path), merge_vertices=True)
         else:
-            import_function(filepath=object_path)
+            import_function(filepath=str(object_path))
 
     def delete_invisible_objects(
         self,
