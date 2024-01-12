@@ -1,22 +1,22 @@
 import glob
 import os
+import subprocess
+from multiprocessing import Pool
+from typing import List
 
 import fire
-from loguru import logger
-from multiprocessing import Pool
-import subprocess
-from typing import List
 import numpy as np
+from loguru import logger
 
 
 def render_object(
     filename: str,
     output_dir: str = None,
-    three_views: bool = True,
+    three_views: bool = False,
     num_renders: int = 5,
     num_trials: int = 5,
-    freestyle: bool = True,
-    visible_edges: bool = False,
+    freestyle: bool = False,
+    visible_edges: bool = True,
     engine: str = "CYCLES",
     only_northern_hemisphere: bool = False,
     render_size: int = 1024,
@@ -63,6 +63,7 @@ def render_object(
     args += f" --object_filename {filename}"
     args += f" --output_dir {output_dir}"
     command = f"python blender.py {args}"
+    logger.debug(f"Running command: {command}")
 
     # run
     fire.Fire(command)
@@ -71,11 +72,11 @@ def render_object(
 def render_objects(
     object_path: str = "sample_data",
     output_dir: str = "sample_output",
-    three_views: bool = True,
+    three_views: bool = False,
     num_renders: int = 5,
     num_trials: int = 5,
-    freestyle: bool = True,
-    visible_edges: bool = False,
+    freestyle: bool = False,
+    visible_edges: bool = True,
     engine: str = "CYCLES",
     only_northern_hemisphere: bool = False,
     render_size: int = 1024,
@@ -105,7 +106,7 @@ def render_objects(
         args += "--only_northern_hemisphere"
 
     # get all objects in the raw data path
-    all_objects = glob.glob("**/*.stl", root_dir=object_path, recursive=True)
+    all_objects = glob.glob("**/*.STL", root_dir=object_path, recursive=True)
     logger.info(f"Found {len(all_objects)} objects to render in {object_path}.")
 
     # set render style
@@ -133,7 +134,7 @@ def render_objects(
         for obj in all_objects
     ]
     commands = [
-        command + f" --object_filename {obj} --output_dir {output_dir}"
+        command + f" --object_filename '{obj}' --output_dir '{output_dir}'"
         for obj, output_dir in io_paths
     ]
 

@@ -6,13 +6,13 @@ import math
 import os
 import random
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
+
 import bpy
 import addon_utils
 
 addon_utils.enable("measureit")
 import numpy as np
 from mathutils import Vector
-
 
 IMPORT_FUNCTIONS: Dict[str, Callable] = {
     "obj": bpy.ops.import_scene.obj,
@@ -775,10 +775,7 @@ def render_object(
             rot_quat = direction.to_track_quat("-Z", "Y")
             cam.rotation_euler = rot_quat.to_euler()
             # render the image
-            if freestyle:
-                filename = os.path.join(output_dir, f"sketch_{trial_id}_{view_id}.png")
-            else:
-                filename = os.path.join(output_dir, f"rgba_{trial_id}_{view_id}.png")
+            filename = os.path.join(output_dir, f"{view_id:02d}.png")
             scene.render.filepath = filename
             bpy.ops.render.render(write_still=True)
 
@@ -812,7 +809,6 @@ if __name__ == "__main__":
         "--only_northern_hemisphere",
         action="store_true",
         help="Only render the northern hemisphere of the object.",
-        default=False,
     )
     parser.add_argument(
         "--camera_type",
@@ -842,13 +838,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--freestyle",
         action="store_true",
-        default=True,
         help="Render the freestyle lines.",
     )
     parser.add_argument(
         "--visible_edges",
         action="store_true",
-        default=False,
         help="If true, only render the visible edges.",
     )
     parser.add_argument(
