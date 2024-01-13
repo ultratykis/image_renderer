@@ -140,8 +140,8 @@ def render_objects(
 
     # get cpu count
     cpu_count = os.cpu_count()
-    p_count = 4
-    if len(all_objects) > cpu_count:
+    p_count = cpu_count - 4 if cpu_count > 4 else 1
+    if len(all_objects) > p_count:
         # render all objects in parallel
         with Pool(processes=p_count) as p:
             p.map(subprocess_cmd, commands)
