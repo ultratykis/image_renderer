@@ -11,7 +11,7 @@ poetry install
 Or use pip to install dependencies. Need python 3.10 (>=3.10,<3.11.dev0)
 
 ```bash
-pip install bpy, numpy, fire, loguru
+pip install bpy numpy fire loguru
 ```
 
 ```bash

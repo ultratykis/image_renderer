@@ -7,12 +7,19 @@ import os
 import random
 from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
 
-import bpy
-import addon_utils
+try:
+    import bpy
+except ImportError:
+    raise ImportError("This script must be run from within bpy.")
+else:
+    from mathutils import Vector
 
-addon_utils.enable("measureit")
+    # import addon for measuring
+    # import addon_utils
+    # addon_utils.enable("measureit")
+
 import numpy as np
-from mathutils import Vector
+from loguru import logger
 
 IMPORT_FUNCTIONS: Dict[str, Callable] = {
     "obj": bpy.ops.import_scene.obj,
@@ -642,13 +649,9 @@ def render_object(
     object_file: str,
     output_dir: str,
     only_northern_hemisphere: bool,
-    camera_type: str,
     three_views: bool,
     num_renders: int,
-    num_trials: int,
-    freestyle: bool = False,
-    error_az_range=22.5,
-    error_el_range=5,
+    error_el_range=22.5,
     camera_dist=1.5,
 ) -> None:
     """Saves rendered images with its camera matrix and metadata of the object.
@@ -661,13 +664,9 @@ def render_object(
             are in the northern hemisphere. This is useful for rendering objects that
             are photogrammetrically scanned, as the bottom of the object often has
             holes.
-        camera_type (str): Type of camera to use. Must be one of "PERSP", "ORTHO".
         three_views (bool): Whether to render the object from 3 views (front, side, and top). If true, num_renders and num_trials are ignored.
         num_renders (int): Number of renders to save of the object.
-        num_trials (int): Number of trials to try rendering num_renders images.
-        freestyle (bool, optional): Whether to render the object with freestyle. Defaults to False.
-        error_az_range (float, optional): Range of error in azimuth angle. Defaults to 22.5.
-        error_el_range (float, optional): Range of error in elevation angle. Defaults to 5.
+        error_el_range (float, optional): Range of error in elevation angle. Defaults to 22.5.
         camera_dist (float, optional): Distance of the camera from the object. Defaults to 1.5.
     Returns:
         None
@@ -719,67 +718,54 @@ def render_object(
     metadata["missing_textures"] = missing_textures
 
     # possibly apply a random color to all objects
-    if (object_file.endswith(".stl") or object_file.endswith(".ply")) and not freestyle:
-        # bpy.ops.object.select_by_type(type="MESH")
-        # assert len(bpy.context.selected_objects) == 1
-        rand_color = apply_single_random_color_to_all_objects()
-        metadata["random_color"] = rand_color
-        # bpy.ops.object.select_all(action="DESELECT")
-    else:
-        metadata["random_color"] = None
+    # if (object_file.endswith(".stl") or object_file.endswith(".ply")) and not freestyle:
+    #     # bpy.ops.object.select_by_type(type="MESH")
+    #     # assert len(bpy.context.selected_objects) == 1
+    #     rand_color = apply_single_random_color_to_all_objects()
+    #     metadata["random_color"] = rand_color
+    #     # bpy.ops.object.select_all(action="DESELECT")
+    # else:
+    #     metadata["random_color"] = None
 
     if three_views:
         num_renders = 3
-        num_trials = 1
         preset_cameras = [
             {"az": 0, "el": 0},
             {"az": 90, "el": 0},
             {"az": 0, "el": 90},
         ]
 
-    az_angles = []
-    el_angles = []
-    for trial_id in range(num_trials):
-        for view_id in range(num_renders):
-            if not three_views:
-                # set the camera position
-                if num_trials != 1:
-                    # render the object from 0, 45, 90, 135, 180 degrees azimuth
-                    az = trial_id * 45 + (2 * np.random.rand() - 1) * error_az_range
-                else:
-                    # randomly perturb the camera position from the 0 to 360 degrees azimuth.
-                    # sampled by 360 / num_renders. azimuth degree increases each view_id
-                    az = (
-                        view_id * 360 / num_renders
-                        + (2 * np.random.rand() - 1) * error_az_range
-                    )
-                el = (2 * np.random.rand() - 1) * error_el_range + 20
-            else:
-                az = preset_cameras[view_id]["az"]
-                el = preset_cameras[view_id]["el"]
-            az_angles.append(az)
-            el_angles.append(el)
-            cam.location = (
-                camera_dist
-                * math.cos(el / 180 * math.pi)
-                * math.sin(az / 180 * math.pi),
-                camera_dist
-                * math.cos(el / 180 * math.pi)
-                * math.cos(az / 180 * math.pi),
-                camera_dist * math.sin(el / 180 * math.pi)
-                if not only_northern_hemisphere
-                else abs(camera_dist * math.sin(el / 180 * math.pi)),
-            )
+    az_angles = np.linspace(0, 360, num_renders, endpoint=False)
+    el_angles = [
+        np.random.uniform(-error_el_range, error_el_range) for _ in range(num_renders)
+    ]
+    for view_id in range(num_renders):
+        if not three_views:
+            # set the camera position
+            # randomly perturb the camera position from the 0 to 360 degrees azimuth.
+            # sampled by 360 / num_renders. azimuth degree increases each view_id
+            az = az_angles[view_id]
+            el = el_angles[view_id]
+        else:
+            az = preset_cameras[view_id]["az"]
+            el = preset_cameras[view_id]["el"]
+        cam.location = (
+            camera_dist * math.cos(el / 180 * math.pi) * math.sin(az / 180 * math.pi),
+            camera_dist * math.cos(el / 180 * math.pi) * math.cos(az / 180 * math.pi),
+            camera_dist * math.sin(el / 180 * math.pi)
+            if not only_northern_hemisphere
+            else abs(camera_dist * math.sin(el / 180 * math.pi)),
+        )
 
-            direction = Vector((0, 0, 0)) - cam.location
-            rot_quat = direction.to_track_quat("-Z", "Y")
-            cam.rotation_euler = rot_quat.to_euler()
-            # render the image
-            filename = os.path.join(output_dir, f"{view_id:02d}.png")
-            scene.render.filepath = filename
-            bpy.ops.render.render(write_still=True)
+        direction = Vector((0, 0, 0)) - cam.location
+        rot_quat = direction.to_track_quat("-Z", "Y")
+        cam.rotation_euler = rot_quat.to_euler()
+        # render the image
+        filename = os.path.join(output_dir, f"{view_id:02d}.png")
+        scene.render.filepath = filename
+        bpy.ops.render.render(write_still=True)
 
-    metadata["camera"] = {"az": az_angles, "el": el_angles}
+    metadata["camera"] = {"az": list(az_angles), "el": list(el_angles)}
     # save metadata
     with open(metadata_path, "w", encoding="utf-8") as f:
         json.dump(metadata, f, sort_keys=True, indent=2)
@@ -826,14 +812,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_renders",
         type=int,
-        default=5,
+        default=12,
         help="Number of renders to save of the object.",
-    )
-    parser.add_argument(
-        "--num_trials",
-        type=int,
-        default=5,
-        help="Number of trials to render the images. If one, the camera will be randomly placed to render num_renders images. If more than one, the camera will be placed at 0, 45, 90, 135, 180 degrees azimuth and randomly perturbed to render num_renders images.",
     )
     parser.add_argument(
         "--freestyle",
@@ -945,14 +925,13 @@ if __name__ == "__main__":
         # scene.render.film_transparent = False
 
     # Render the images
-    print("starting rendering {}...".format(args.object_filename))
+    logger.info(
+        f"starting rendering {os.path.basename(args.object_filename)} to {args.output_dir}..."
+    )
     render_object(
         object_file=args.object_filename,
         num_renders=args.num_renders,
-        num_trials=args.num_trials,
         only_northern_hemisphere=args.only_northern_hemisphere,
-        camera_type=args.camera_type,
         three_views=args.three_views,
         output_dir=args.output_dir,
-        freestyle=args.freestyle,
     )
