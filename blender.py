@@ -5,7 +5,8 @@ import json
 import math
 import os
 import random
-from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
+from typing import (Any, Callable, Dict, Generator, List, Literal, Optional,
+                    Set, Tuple)
 
 try:
     import bpy
@@ -653,6 +654,7 @@ def render_object(
     num_renders: int,
     error_el_range=22.5,
     camera_dist=1.5,
+    overwrite: bool = False,
 ) -> None:
     """Saves rendered images with its camera matrix and metadata of the object.
 
@@ -668,9 +670,20 @@ def render_object(
         num_renders (int): Number of renders to save of the object.
         error_el_range (float, optional): Range of error in elevation angle. Defaults to 22.5.
         camera_dist (float, optional): Distance of the camera from the object. Defaults to 1.5.
+        overwrite (bool, optional): Whether to overwrite the output directory if it
+            already exists. Defaults to False.
     Returns:
         None
     """
+    # check if the output directory exists or not empty
+    if not overwrite and os.path.exists(output_dir):
+        # check if the existing images number matches the number of renders
+        if len(os.listdir(output_dir))-1 == num_renders:
+            logger.info(
+                f"Skipping {object_file} because {output_dir} already exists and contains {num_renders} images."
+            )
+            return
+
     os.makedirs(output_dir, exist_ok=True)
     metadata_path = os.path.join(output_dir, "metadata.json")
 

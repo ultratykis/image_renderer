@@ -46,17 +46,6 @@ def render_objects(
     # get all objects in the raw data path
     all_objects = glob.glob("**/*.STL", root_dir=object_path, recursive=True)
     logger.info(f"Found {len(all_objects)} objects to render in {object_path}.")
-    # exclude objects that have already been rendered
-    if os.path.exists(output_dir):
-        all_rendered_names = os.listdir(output_dir)
-        all_objects = [
-            obj
-            for obj in all_objects
-            if os.path.basename(obj).replace(".STL", "") not in all_rendered_names
-        ]
-        logger.info(
-            f"Found {len(all_objects)} objects to render in {object_path} excluding {len(all_rendered_names)} already rendered objects."
-        )
 
     # set render style
     if freestyle:
