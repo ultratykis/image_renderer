@@ -44,12 +44,3 @@ Top view:
 ![top](./sample_output/2.png)
 
 Code partially borrowed (scene normalization, camera/light setup and metadata extractor) from [Objaverse-XL](https://github.com/allenai/objaverse-xl/tree/main/scripts/rendering).
-
-## Use as a library
-
-```python
-from image_render import Renderer
-
-renderer = Renderer()
-renderer.render_object("sample_data/sample_from_abc.stl", "sample_output", three_views=True)
-```
