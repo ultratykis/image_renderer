@@ -14,11 +14,11 @@ def render_objects(
     output_dir: str = "sample_output",
     three_views: bool = False,
     num_renders: int = 12,
-    freestyle: bool = True,
+    freestyle: bool = False,
     visible_edges: bool = True,
     engine: str = "CYCLES",
     only_northern_hemisphere: bool = False,
-    render_size: int = 1024,
+    render_size: int = 256,
     res_percentage: int = 100,
     output_channels: str = "RGB",
 ) -> bool:
@@ -45,6 +45,7 @@ def render_objects(
 
     # get all objects in the raw data path
     all_objects = glob.glob("**/*.STL", root_dir=object_path, recursive=True)
+
     logger.info(f"Found {len(all_objects)} objects to render in {object_path}.")
 
     # set render style
@@ -75,13 +76,12 @@ def render_objects(
         for obj, output_dir in io_paths
     ]
 
-    # get cpu count
-    cpu_count = os.cpu_count()
-    p_count = cpu_count - 4 if cpu_count > 4 else 1
-    if len(all_objects) > p_count:
+    if len(all_objects) > 4:
         # render all objects in parallel
-        with Pool(processes=p_count) as p:
-            p.map(subprocess_cmd, commands)
+        with Pool(processes=4) as p:
+            proc = p.map(subprocess_cmd, commands)
+            proc.close()
+            proc.join()
     else:
         # render all objects sequentially
         for command in commands:

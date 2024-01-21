@@ -5,8 +5,7 @@ import json
 import math
 import os
 import random
-from typing import (Any, Callable, Dict, Generator, List, Literal, Optional,
-                    Set, Tuple)
+from typing import Any, Callable, Dict, Generator, List, Literal, Optional, Set, Tuple
 
 try:
     import bpy
@@ -675,14 +674,6 @@ def render_object(
     Returns:
         None
     """
-    # check if the output directory exists or not empty
-    if not overwrite and os.path.exists(output_dir):
-        # check if the existing images number matches the number of renders
-        if len(os.listdir(output_dir))-1 == num_renders:
-            logger.info(
-                f"Skipping {object_file} because {output_dir} already exists and contains {num_renders} images."
-            )
-            return
 
     os.makedirs(output_dir, exist_ok=True)
     metadata_path = os.path.join(output_dir, "metadata.json")
